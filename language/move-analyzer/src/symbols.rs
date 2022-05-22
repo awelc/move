@@ -47,7 +47,7 @@
 //! matching uses to a definition in the innermost scope.
 
 use crate::context::Context;
-use anyhow::Result;
+use anyhow::{bail, Result};
 use codespan_reporting::files::{Files, SimpleFiles};
 use lsp_server::{Request, RequestId};
 use lsp_types::{GotoDefinitionParams, Location, Position, Range, ReferenceParams};
@@ -64,7 +64,6 @@ use url::Url;
 
 use move_command_line_common::files::FileHash;
 use move_compiler::{
-    diagnostics,
     expansion::ast::{Fields, ModuleIdent, ModuleIdent_},
     naming::ast::{StructDefinition, StructFields, TParam, Type, TypeName_, Type_},
     parser::ast::StructName,
@@ -355,14 +354,24 @@ impl Symbolicator {
         let build_plan = BuildPlan::create(resolution_graph)?;
         let mut typed_ast = vec![];
         build_plan.compile_with_driver(&mut std::io::sink(), |compiler| {
-            let (files, comments_and_compiler_res) = compiler.run::<PASS_TYPING>().unwrap();
-            let (_, compiler) =
-                diagnostics::unwrap_or_report_diagnostics(&files, comments_and_compiler_res);
+            eprintln!("compiling to typed AST");
+            let (files, compilation_result) = compiler.run::<PASS_TYPING>().unwrap();
+            eprintln!("compiled to typed AST");
+            let (_, compiler) = match compilation_result {
+                Ok(v) => v,
+                Err(_) => bail!("typed AST compilation failed"),
+            };
+            eprintln!("reported typed AST diagnostics");
             let (compiler, typed_program) = compiler.into_ast();
+            eprintln!("compiling to bytecode");
             typed_ast.push(typed_program.clone());
             let compilation_result = compiler.at_typing(typed_program).build();
-
-            let (units, _) = diagnostics::unwrap_or_report_diagnostics(&files, compilation_result);
+            eprintln!("compiled to bytecode");
+            let (units, _) = match compilation_result {
+                Ok(v) => v,
+                Err(_) => bail!("bytecode compilation failed"),
+            };
+            eprintln!("reported bytecode diagnostics");
             Ok((files, units))
         })?;
 
