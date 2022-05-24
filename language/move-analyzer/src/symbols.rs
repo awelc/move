@@ -1551,7 +1551,7 @@ fn symbols_test() {
 
     path.push("tests/symbols");
 
-    let symbols = Symbolicator::get_symbols(path.as_path()).unwrap().unwrap();
+    let (symbols, _) = Symbolicator::get_symbols(path.as_path()).unwrap();
 
     let mut fpath = path.clone();
     fpath.push("sources/M1.move");
