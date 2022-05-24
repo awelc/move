@@ -46,14 +46,19 @@
 //! definitions, the symbolicator builds a scope stack, entering encountered definitions and
 //! matching uses to a definition in the innermost scope.
 
-use crate::context::Context;
-use anyhow::{bail, Result};
-use codespan_reporting::files::{Files, SimpleFiles};
+use crate::{
+    context::Context,
+    diagnostics::{lsp_diagnostics, lsp_empty_diagnostics},
+    utils::get_loc,
+};
+use anyhow::Result;
+use codespan_reporting::files::SimpleFiles;
+use crossbeam::channel::Sender;
 use lsp_server::{Request, RequestId};
-use lsp_types::{GotoDefinitionParams, Location, Position, Range, ReferenceParams};
+use lsp_types::{Diagnostic, GotoDefinitionParams, Location, Position, Range, ReferenceParams};
 use std::{
     cmp,
-    collections::{BTreeMap, BTreeSet, VecDeque},
+    collections::{BTreeMap, BTreeSet, HashMap, VecDeque},
     fs,
     path::{Path, PathBuf},
     sync::{Arc, Condvar, Mutex},
@@ -64,6 +69,7 @@ use url::Url;
 
 use move_command_line_common::files::FileHash;
 use move_compiler::{
+    diagnostics::{render_diagnostic, Diagnostics},
     expansion::ast::{Fields, ModuleIdent, ModuleIdent_},
     naming::ast::{StructDefinition, StructFields, TParam, Type, TypeName_, Type_},
     parser::ast::StructName,
@@ -152,7 +158,7 @@ pub struct Symbolicator {
     /// A mapping from file names to file content (used to obtain source file locations)
     files: SimpleFiles<Symbol, String>,
     /// A mapping from file hashes to file IDs (used to obtain source file locations)
-    file_id_mapping: BTreeMap<FileHash, usize>,
+    file_id_mapping: HashMap<FileHash, usize>,
     /// Scope to contain type params where relevant (e.g. when processing function definition)
     type_params: Scope,
     /// Current processed module (always set before module processing starts)
@@ -196,7 +202,11 @@ impl SymbolicatorRunner {
     }
 
     /// Create a new runner
-    pub fn new(uri: &Url, symbols: Arc<Mutex<Symbols>>) -> Self {
+    pub fn new(
+        uri: &Url,
+        symbols: Arc<Mutex<Symbols>>,
+        sender: Sender<BTreeMap<Symbol, Vec<Diagnostic>>>,
+    ) -> Self {
         let mtx_cvar = Arc::new((Mutex::new(RunnerState::Wait), Condvar::new()));
         let thread_mtx_cvar = mtx_cvar.clone();
         let pkg_path = uri.to_file_path().unwrap();
@@ -232,12 +242,18 @@ impl SymbolicatorRunner {
                 if get_symbols {
                     eprintln!("symbolication started");
                     match Symbolicator::get_symbols(&pkg_path) {
-                        Ok(syms) => {
+                        Ok((syms, lsp_diagnostics)) => {
                             eprintln!("symbolication finished");
                             let mut old_symbols = symbols.lock().unwrap();
                             *old_symbols = syms;
+                            // set/reset (previous) diagnostics
+                            let sent = sender.send(lsp_diagnostics);
+                            debug_assert!(Ok(()) == sent);
                         }
-                        Err(err) => eprintln!("symbolication failed: {:?}", err),
+                        Err(err) => {
+                            eprintln!("symbolication failed: {:?}", err);
+                            debug_assert!(false);
+                        }
                     }
                 }
             }
@@ -328,7 +344,7 @@ impl UseDefMap {
 
 impl Symbolicator {
     /// Main driver to get symbols for the whole package
-    pub fn get_symbols(pkg_path: &Path) -> Result<Symbols> {
+    pub fn get_symbols(pkg_path: &Path) -> Result<(Symbols, BTreeMap<Symbol, Vec<Diagnostic>>)> {
         let build_config = move_package::BuildConfig {
             test_mode: true,
             install_dir: Some(tempdir().unwrap().path().to_path_buf()),
@@ -343,7 +359,7 @@ impl Symbolicator {
         // file locations (in terms of line/column numbers)
         let source_files = &resolution_graph.file_sources();
         let mut files = SimpleFiles::new();
-        let mut file_id_mapping = BTreeMap::new();
+        let mut file_id_mapping = HashMap::new();
         let mut file_name_mapping = BTreeMap::new();
         for (fhash, (fname, source)) in source_files {
             let id = files.add(*fname, source.clone());
@@ -353,29 +369,40 @@ impl Symbolicator {
 
         let build_plan = BuildPlan::create(resolution_graph)?;
         let mut typed_ast = vec![];
+        let mut diagnostics = vec![];
         build_plan.compile_with_driver(&mut std::io::sink(), |compiler| {
-            eprintln!("compiling to typed AST");
             let (files, compilation_result) = compiler.run::<PASS_TYPING>().unwrap();
-            eprintln!("compiled to typed AST");
             let (_, compiler) = match compilation_result {
                 Ok(v) => v,
-                Err(_) => bail!("typed AST compilation failed"),
+                Err(diags) => {
+                    diagnostics.push(diags);
+                    return Ok((files, vec![]));
+                }
             };
-            eprintln!("reported typed AST diagnostics");
             let (compiler, typed_program) = compiler.into_ast();
-            eprintln!("compiling to bytecode");
             typed_ast.push(typed_program.clone());
             let compilation_result = compiler.at_typing(typed_program).build();
-            eprintln!("compiled to bytecode");
             let (units, _) = match compilation_result {
                 Ok(v) => v,
-                Err(_) => bail!("bytecode compilation failed"),
+                Err(diags) => {
+                    diagnostics.push(diags);
+                    return Ok((files, vec![]));
+                }
             };
-            eprintln!("reported bytecode diagnostics");
             Ok((files, units))
         })?;
 
-        debug_assert!(typed_ast.len() == 1);
+        debug_assert!(typed_ast.len() == 1 || diagnostics.len() == 1);
+        if diagnostics.len() == 1 {
+            let lsp_diagnostics = lsp_diagnostics(
+                &diagnostics.pop().unwrap().into_codespan_format(),
+                &files,
+                &file_id_mapping,
+                &file_name_mapping,
+            );
+            return Ok((Self::empty_symbols(), lsp_diagnostics));
+        }
+
         let modules = &typed_ast.get(0).unwrap().modules;
 
         let mut mod_outer_defs = BTreeMap::new();
@@ -419,12 +446,20 @@ impl Symbolicator {
             symbolicator.mod_symbols(module_def, &mut references, use_defs);
         }
 
-        Ok(Symbols {
+        let lsp_diagnostics = lsp_empty_diagnostics(&file_name_mapping);
+        let symbols = Symbols {
             references,
             mod_use_defs,
             mod_ident_map,
             file_name_mapping,
-        })
+        };
+        Ok((symbols, lsp_diagnostics))
+    }
+
+    pub fn report_diagnostics(diags: Diagnostics, file_mapping: &HashMap<FileHash, usize>) {
+        for d in diags.into_vec() {
+            eprintln!("DIAG: {:?}", render_diagnostic(file_mapping, d));
+        }
     }
 
     /// Get empty symbols
@@ -445,7 +480,7 @@ impl Symbolicator {
         references: &mut BTreeMap<DefLoc, BTreeSet<UseLoc>>,
         mod_def: &ModuleDefinition,
         files: &SimpleFiles<Symbol, String>,
-        file_id_mapping: &BTreeMap<FileHash, usize>,
+        file_id_mapping: &HashMap<FileHash, usize>,
     ) -> (ModuleDefs, UseDefMap) {
         let mut structs = BTreeMap::new();
         let mut constants = BTreeMap::new();
@@ -680,20 +715,9 @@ impl Symbolicator {
     fn get_start_loc(
         pos: &Loc,
         files: &SimpleFiles<Symbol, String>,
-        file_id_mapping: &BTreeMap<FileHash, usize>,
+        file_id_mapping: &HashMap<FileHash, usize>,
     ) -> Option<Position> {
-        let id = match file_id_mapping.get(&pos.file_hash()) {
-            Some(v) => v,
-            None => return None,
-        };
-        match files.location(*id, pos.start() as usize) {
-            Ok(v) => Some(Position {
-                // we need 0-based column location
-                line: v.line_number as u32 - 1,
-                character: v.column_number as u32 - 1,
-            }),
-            Err(_) => None,
-        }
+        get_loc(&pos.file_hash(), pos.start(), files, file_id_mapping)
     }
 
     /// Get symbols for a sequence representing function body
@@ -1527,7 +1551,7 @@ fn symbols_test() {
 
     path.push("tests/symbols");
 
-    let symbols = Symbolicator::get_symbols(path.as_path()).unwrap();
+    let symbols = Symbolicator::get_symbols(path.as_path()).unwrap().unwrap();
 
     let mut fpath = path.clone();
     fpath.push("sources/M1.move");
