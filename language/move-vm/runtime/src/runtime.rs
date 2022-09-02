@@ -143,6 +143,7 @@ impl VMRuntime {
         self.loader
             .verify_module_bundle_for_publication(&compiled_modules, data_store)?;
 
+        eprintln!("AFTER LOADING");
         // NOTE: we want to (informally) argue that all modules pass the linking check before being
         // published to the data store.
         //
@@ -198,6 +199,7 @@ impl VMRuntime {
 
         // All modules verified, publish them to data cache
         for (module, blob) in compiled_modules.into_iter().zip(modules.into_iter()) {
+            eprintln!("MOD PUBLISH: {}", module.name());
             let is_republishing = data_store.exists_module(&module.self_id())?;
             if is_republishing {
                 // This is an upgrade, so invalidate the loader cache, which still contains the
@@ -205,6 +207,7 @@ impl VMRuntime {
                 self.loader.mark_as_invalid();
             }
             data_store.publish_module(&module.self_id(), blob, is_republishing)?;
+            eprintln!("MOD PUBLISH END: {}", module.name());
         }
         Ok(())
     }
