@@ -765,17 +765,22 @@ impl Loader {
         // module will NOT show up in `module_cache`. In the module republishing case, it means
         // that the old module is still in the `module_cache`, unless a new Loader is created,
         // which means that a new MoveVM instance needs to be created.
+        eprintln!("AAA");
         move_bytecode_verifier::verify_module_with_config(&self.verifier_config, module)?;
+        eprintln!("BBB");
         self.check_natives(module)?;
 
         let mut visited = BTreeSet::new();
         let mut friends_discovered = BTreeSet::new();
+        eprintln!("CCC");
         visited.insert(module.self_id());
+        eprintln!("DDD");
         friends_discovered.extend(module.immediate_friends());
 
         // downward exploration of the module's dependency graph. Since we know nothing about this
         // target module, we don't know what the module may specify as its dependencies and hence,
         // we allow the loading of dependencies and the subsequent linking to fail.
+        eprintln!("EEE");
         self.load_and_verify_dependencies(
             module,
             bundle_verified,
@@ -788,6 +793,7 @@ impl Loader {
         // upward exploration of the modules's dependency graph. Similar to dependency loading, as
         // we know nothing about this target module, we don't know what the module may specify as
         // its friends and hence, we allow the loading of friends to fail.
+        eprintln!("FFF");
         self.load_and_verify_friends(
             friends_discovered,
             bundle_verified,
@@ -796,6 +802,7 @@ impl Loader {
             /* allow_friend_loading_failure */ true,
         )?;
 
+        eprintln!("GGG");
         // make sure there is no cyclic dependency
         self.verify_module_cyclic_relations(module, bundle_verified, bundle_unverified)
     }
