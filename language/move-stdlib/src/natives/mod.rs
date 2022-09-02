@@ -11,7 +11,6 @@ pub mod string;
 pub mod unit_test;
 pub mod vector;
 
-#[cfg(feature = "testing")]
 pub mod debug;
 
 mod helpers;
