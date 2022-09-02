@@ -727,6 +727,8 @@ impl Loader {
         let mut bundle_unverified: BTreeSet<_> = modules.iter().map(|m| m.self_id()).collect();
         let mut bundle_verified = BTreeMap::new();
         for module in modules {
+            eprintln!("MOD LOAD: {}", module.name());
+
             let module_id = module.self_id();
             bundle_unverified.remove(&module_id);
 
