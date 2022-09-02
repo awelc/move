@@ -78,7 +78,11 @@ impl VMRuntime {
         // used with the `[]` operator
         let compiled_modules = match modules
             .iter()
-            .map(|blob| CompiledModule::deserialize(blob))
+            .map(|blob| {
+                let m = CompiledModule::deserialize(blob);
+                eprintln!("MOD DESER: {}", m.clone().unwrap().name());
+                m
+            })
             .collect::<PartialVMResult<Vec<_>>>()
         {
             Ok(modules) => modules,
@@ -92,6 +96,7 @@ impl VMRuntime {
         // where the module will actually be published. If we did not check this, the sender could
         // publish a module under anyone's account.
         for module in &compiled_modules {
+            eprintln!("MOD CHECK 1: {}", module.name());
             if module.address() != &sender {
                 return Err(verification_error(
                     StatusCode::MODULE_ADDRESS_DOES_NOT_MATCH_SENDER,
@@ -111,6 +116,7 @@ impl VMRuntime {
         // TODO: in the future, we may want to add restrictions on module republishing, possibly by
         // changing the bytecode format to include an `is_upgradable` flag in the CompiledModule.
         for module in &compiled_modules {
+            eprintln!("MOD CHECK 2: {}", module.name());
             let module_id = module.self_id();
             if data_store.exists_module(&module_id)? && compat_check {
                 let old_module_ref = self.loader.load_module(&module_id, data_store)?;
@@ -130,6 +136,8 @@ impl VMRuntime {
                     .finish(Location::Undefined));
             }
         }
+
+        eprintln!("BEFORE LOADING");
 
         // Perform bytecode and loading verification. Modules must be sorted in topological order.
         self.loader
