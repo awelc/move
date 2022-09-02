@@ -138,7 +138,6 @@ impl NurseryGasParameters {
                     unit_cost: 0.into(),
                 },
             },
-            #[cfg(feature = "testing")]
             debug: debug::GasParameters {
                 print: debug::PrintGasParameters {
                     base_cost: 0.into(),
