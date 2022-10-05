@@ -931,8 +931,8 @@ fn exp_<'env>(
                 stack.frames.push(Box::new(f_rhs));
                 stack.frames.push(Box::new(f_lhs));
             }
-            /*            TE::Builtin(bt, arguments)
-                if matches!(&*bt, sp!(_, T::BuiltinFunction_::Assert(false))) =>
+            TE::Builtin(bt, arguments)
+                if matches!(&*bt, sp!(_, T::BuiltinFunction_::Assert(_))) =>
             {
                 let tbool = N::Type_::bool(loc);
                 let tu64 = N::Type_::u64(loc);
@@ -969,9 +969,9 @@ fn exp_<'env>(
 
                 let block = T::exp(tunit, sp(loc, TE::Block(stmts)));
                 exp_loop(stack, result, cur_expected_type_opt, Box::new(block));
-            }*/
-            TE::Builtin(bt, arguments)
-                if matches!(&*bt, sp!(_, T::BuiltinFunction_::Assert(_))) =>
+            }
+            /*            TE::Builtin(bt, arguments)
+                if matches!(&*bt, sp!(_, T::BuiltinFunction_::Assert(true))) =>
             {
                 use T::ExpListItem as TI;
                 let tunit = sp(loc, N::Type_::Unit);
@@ -988,7 +988,7 @@ fn exp_<'env>(
                 let if_else_ = TE::IfElse(Box::new(econd), Box::new(eunit), Box::new(eabort));
                 let if_else = T::exp(tunit, sp(loc, if_else_));
                 exp_loop(stack, result, cur_expected_type_opt, Box::new(if_else));
-            }
+            }*/
             te_ => {
                 let result = &mut *result.borrow_mut();
                 let e_res = exp_impl(stack.context, result, ty, loc, te_);
