@@ -931,7 +931,7 @@ fn exp_<'env>(
                 stack.frames.push(Box::new(f_rhs));
                 stack.frames.push(Box::new(f_lhs));
             }
-            TE::Builtin(bt, arguments)
+            /*            TE::Builtin(bt, arguments)
                 if matches!(&*bt, sp!(_, T::BuiltinFunction_::Assert(false))) =>
             {
                 let tbool = N::Type_::bool(loc);
@@ -969,9 +969,9 @@ fn exp_<'env>(
 
                 let block = T::exp(tunit, sp(loc, TE::Block(stmts)));
                 exp_loop(stack, result, cur_expected_type_opt, Box::new(block));
-            }
+            }*/
             TE::Builtin(bt, arguments)
-                if matches!(&*bt, sp!(_, T::BuiltinFunction_::Assert(true))) =>
+                if matches!(&*bt, sp!(_, T::BuiltinFunction_::Assert(_))) =>
             {
                 use T::ExpListItem as TI;
                 let tunit = sp(loc, N::Type_::Unit);
