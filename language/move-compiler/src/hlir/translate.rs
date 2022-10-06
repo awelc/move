@@ -932,9 +932,9 @@ fn exp_<'env>(
                 stack.frames.push(Box::new(f_lhs));
             }
             TE::Builtin(bt, arguments)
-                if matches!(&*bt, sp!(_, T::BuiltinFunction_::Assert(is_macro))) =>
+                if matches!(&*bt, sp!(_, T::BuiltinFunction_::Assert(_))) =>
             {
-                eprintln!("PROCESSING ASSERTION {}", is_macro);
+                eprintln!("PROCESSING ASSERTION");
                 let tbool = N::Type_::bool(loc);
                 let tu64 = N::Type_::u64(loc);
                 let tunit = sp(loc, N::Type_::Unit);
