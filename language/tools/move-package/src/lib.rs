@@ -163,6 +163,7 @@ impl BuildConfig {
         path: &Path,
         writer: &mut W,
     ) -> Result<CompiledPackage> {
+        eprintln!("COMPILING {}", path);
         let resolved_graph = self.resolution_graph_for_package(path)?;
         let mutx = PackageLock::lock();
         let ret = BuildPlan::create(resolved_graph)?.compile_no_exit(writer);
