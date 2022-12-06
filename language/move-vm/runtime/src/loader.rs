@@ -2668,7 +2668,7 @@ impl Loader {
                 return Err(
                     PartialVMError::new(StatusCode::UNKNOWN_INVARIANT_VIOLATION_ERROR)
                         .with_message(format!("no type layout for {:?}", ty)),
-                );
+                )
             }
         })
     }
