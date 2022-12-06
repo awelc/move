@@ -2455,7 +2455,7 @@ impl TypeCache {
 }
 
 /// Maximal depth of a value in terms of type depth.
-const VALUE_DEPTH_MAX: usize = 128;
+const VALUE_DEPTH_MAX: usize = 100000;
 
 /// Maximal nodes which are allowed when converting to layout. This includes the the types of
 /// fields for struct types.
