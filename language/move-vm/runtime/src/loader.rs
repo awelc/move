@@ -2734,13 +2734,14 @@ impl Loader {
         count: &mut usize,
         depth: usize,
     ) -> PartialVMResult<MoveTypeLayout> {
+        let old_count = *count;
         if *count > MAX_TYPE_TO_LAYOUT_NODES {
             return Err(PartialVMError::new(StatusCode::TOO_MANY_TYPE_NODES));
         }
         if depth > VALUE_DEPTH_MAX {
             return Err(PartialVMError::new(StatusCode::VM_MAX_VALUE_DEPTH_REACHED));
         }
-        Ok(match ty {
+        let res = Ok(match ty {
             Type::Bool => MoveTypeLayout::Bool,
             Type::U8 => MoveTypeLayout::U8,
             Type::U16 => MoveTypeLayout::U16,
@@ -2765,7 +2766,12 @@ impl Loader {
                         .with_message(format!("no type layout for {:?}", ty)),
                 );
             }
-        })
+        });
+        if old_count == 0 && *count > 256 {
+            eprintln!("COUNT: {}", count);
+            eprintln!("LAYOUT: {:?}", res.clone().unwrap());
+        }
+        res
     }
 
     pub(crate) fn type_to_type_tag(&self, ty: &Type) -> PartialVMResult<TypeTag> {
