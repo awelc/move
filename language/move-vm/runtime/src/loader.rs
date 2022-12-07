@@ -2606,13 +2606,14 @@ impl Loader {
         depth: usize,
     ) -> PartialVMResult<MoveTypeLayout> {
         eprintln!("LAYOUT");
+        let old_count = *count;
         if *count > MAX_TYPE_TO_LAYOUT_NODES {
             return Err(PartialVMError::new(StatusCode::TOO_MANY_TYPE_NODES));
         }
         if depth > VALUE_DEPTH_MAX {
             return Err(PartialVMError::new(StatusCode::VM_MAX_VALUE_DEPTH_REACHED));
         }
-        Ok(match ty {
+        let res = Ok(match ty {
             Type::Bool => {
                 *count += 1;
                 MoveTypeLayout::Bool
@@ -2673,7 +2674,12 @@ impl Loader {
                         .with_message(format!("no type layout for {:?}", ty)),
                 )
             }
-        })
+        });
+        if old_count == 0 && *count > 100 {
+            eprintln!("COUNT: {}", count);
+            eprintln!("LAYOUT: {:?}", res.clone().unwrap());
+        }
+        res
     }
 
     fn struct_gidx_to_fully_annotated_layout(
