@@ -2767,7 +2767,7 @@ impl Loader {
                 );
             }
         });
-        if old_count == 0 && *count > 100 {
+        if old_count == 0 && *count > 256 {
             eprintln!("COUNT: {}", count);
             eprintln!("LAYOUT: {:?}", res.clone().unwrap());
         }
