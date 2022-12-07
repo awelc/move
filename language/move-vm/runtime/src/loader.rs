@@ -512,8 +512,6 @@ pub(crate) struct Loader {
 
 impl Loader {
     pub(crate) fn new(natives: NativeFunctions, vm_config: VMConfig) -> Self {
-        eprintln!("LOADER");
-
         Self {
             scripts: RwLock::new(ScriptCache::new()),
             module_cache: RwLock::new(ModuleCache::new()),
