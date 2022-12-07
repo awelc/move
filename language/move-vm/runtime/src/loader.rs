@@ -512,6 +512,8 @@ pub(crate) struct Loader {
 
 impl Loader {
     pub(crate) fn new(natives: NativeFunctions, vm_config: VMConfig) -> Self {
+        eprintln!("LOADER");
+
         Self {
             scripts: RwLock::new(ScriptCache::new()),
             module_cache: RwLock::new(ModuleCache::new()),
@@ -2603,6 +2605,7 @@ impl Loader {
         count: &mut usize,
         depth: usize,
     ) -> PartialVMResult<MoveTypeLayout> {
+        eprintln!("LAYOUT");
         if *count > MAX_TYPE_TO_LAYOUT_NODES {
             return Err(PartialVMError::new(StatusCode::TOO_MANY_TYPE_NODES));
         }
@@ -2680,7 +2683,6 @@ impl Loader {
         count: &mut usize,
         depth: usize,
     ) -> PartialVMResult<MoveStructLayout> {
-        eprintln!("LAYOUT");
         if let Some(struct_map) = self.type_cache.read().structs.get(&gidx) {
             if let Some(struct_info) = struct_map.get(ty_args) {
                 if let Some(node_count) = &struct_info.node_count {
