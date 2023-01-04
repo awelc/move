@@ -316,6 +316,7 @@ impl SpecPrinter<'_> {
                     Int2Bv => print_call_unary("int2bv"),
                     Bv2Int => print_call_unary("bv2int"),
                     // built-in functions
+                    Custom(n) => print_call_fun(n),
                     Len => print_call_fun("len"),
                     Old => print_call_fun("old"),
                     Trace(_) => print_call_fun("TRACE"),

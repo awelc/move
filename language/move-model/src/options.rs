@@ -20,4 +20,7 @@ pub struct ModelBuilderOptions {
 
     /// List of simplification passes and the order each pass to be executed
     pub simplification_pipeline: Vec<SimplificationPass>,
+
+    /// List of custom builtin function names
+    pub custom_builtins: Vec<String>,
 }

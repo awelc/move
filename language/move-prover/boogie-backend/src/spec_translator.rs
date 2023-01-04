@@ -819,6 +819,7 @@ impl<'env> SpecTranslator<'env> {
                 self.translate_resource_exists(node_id, args, memory_label)
             }
             Operation::CanModify => self.translate_can_modify(node_id, args),
+            Operation::Custom(n) => self.translate_primitive_call(n, args),
             Operation::Len => self.translate_primitive_call("LenVec", args),
             Operation::TypeValue => self.translate_type_value(node_id),
             Operation::TypeDomain | Operation::ResourceDomain => self.error(

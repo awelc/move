@@ -15,7 +15,7 @@ use num::BigInt;
 
 /// Declares builtins in the build. This adds functions and operators
 /// to the build which will be treated the same as user defined specification functions.
-pub(crate) fn declare_spec_builtins(trans: &mut ModelBuilder<'_>) {
+pub(crate) fn declare_spec_builtins(trans: &mut ModelBuilder<'_>, custom_builtins: &[String]) {
     let loc = trans.env.internal_loc();
     let bool_t = &Type::new_prim(PrimitiveType::Bool);
     let num_t = &Type::new_prim(PrimitiveType::Num);
@@ -149,6 +149,17 @@ pub(crate) fn declare_spec_builtins(trans: &mut ModelBuilder<'_>) {
                 type_params: vec![],
                 arg_types: vec![],
                 result_type: num_t.clone(),
+            },
+        );
+
+        trans.define_spec_fun(
+            trans.builtin_qualified_symbol("adam"),
+            SpecFunEntry {
+                loc: loc.clone(),
+                oper: Operation::Custom("adam".to_string()),
+                type_params: vec![],
+                arg_types: vec![num_t.clone()],
+                result_type: bool_t.clone(),
             },
         );
 

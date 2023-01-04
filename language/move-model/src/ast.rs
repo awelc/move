@@ -882,6 +882,7 @@ pub enum Operation {
     Cast,
 
     // Builtin functions
+    Custom(String),
     Len,
     TypeValue,
     TypeDomain,

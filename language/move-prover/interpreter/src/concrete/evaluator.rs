@@ -365,6 +365,11 @@ impl<'env> Evaluator<'env> {
                 let lhs = arg_vals.remove(0);
                 self.handle_binary_boolean(op, lhs, rhs)
             }
+            // custom built-ins are not handled at this point
+            Operation::Custom(_) => {
+                // TODO (to avoid test case failure)
+                return Err(BigInt::zero());
+            }
             // vector operation
             Operation::Len => {
                 if cfg!(debug_assertions) {

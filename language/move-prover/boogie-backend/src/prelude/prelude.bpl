@@ -40,6 +40,14 @@ axiom $MAX_U128 == 340282366920938463463374607431768211455;
 const $MAX_U256: int;
 axiom $MAX_U256 == 115792089237316195423570985008687907853269984665640564039457584007913129639935;
 
+//procedure {:inline 1} adam() returns (dst: int) returns (dst: int) {
+//   dst := 42;
+//}
+function adam(v: int): bool {
+  v > 0
+}
+
+
 // Templates for bitvector operations
 
 {%- for impl in bv_instances %}
