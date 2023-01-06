@@ -763,6 +763,7 @@ impl<'env> FunctionTranslator<'env> {
                 self.boogie_type_for_fun(env, local_type, num_oper)
             );
         }
+        emit!(writer, "var adam_tmp: bool;\n");
         // Generate declarations for renamed parameters.
         let proxied_parameters = self.get_mutable_parameters();
         for (idx, ty) in &proxied_parameters {
@@ -985,6 +986,9 @@ impl<'env> FunctionTranslator<'env> {
             }
             Prop(id, kind, exp) => match kind {
                 PropKind::Assert => {
+                    emit!(writer, "adam_tmp := ");
+                    spec_translator.translate(exp, self.type_inst);
+                    emitln!(writer, ";\n");
                     emit!(writer, "assert ");
                     let info = fun_target
                         .get_vc_info(*id)
@@ -996,8 +1000,9 @@ impl<'env> FunctionTranslator<'env> {
                         self.loc_str(&loc),
                         info
                     );
-                    spec_translator.translate(exp, self.type_inst);
-                    emitln!(writer, ";");
+                    emitln!(writer, "adam_tmp;");
+                    //                    spec_translator.translate(exp, self.type_inst);
+                    //                    emitln!(writer, ";");
                 }
                 PropKind::Assume => {
                     emit!(writer, "assume ");
