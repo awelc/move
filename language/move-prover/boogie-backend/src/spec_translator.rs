@@ -819,7 +819,7 @@ impl<'env> SpecTranslator<'env> {
                 self.translate_resource_exists(node_id, args, memory_label)
             }
             Operation::CanModify => self.translate_can_modify(node_id, args),
-            Operation::Custom(n) => self.translate_primitive_call(n, args),
+            Operation::Custom(n) => self.translate_proc_call(n, args),
             Operation::Len => self.translate_primitive_call("LenVec", args),
             Operation::TypeValue => self.translate_type_value(node_id),
             Operation::TypeDomain | Operation::ResourceDomain => self.error(
@@ -1589,6 +1589,14 @@ impl<'env> SpecTranslator<'env> {
         emit!(self.writer, "{}(", fun);
         self.translate_seq(args.iter(), ", ", |e| self.translate_exp(e));
         emit!(self.writer, ")");
+    }
+
+    fn translate_proc_call(&self, fun: &str, args: &[Exp]) {
+        emit!(self.writer, "(call ");
+        emit!(self.writer, "{}(", fun);
+        self.translate_seq(args.iter(), ", ", |e| self.translate_exp(e));
+        emit!(self.writer, ")");
+        emit!(self.writer, "; adam_flag)");
     }
 
     fn translate_primitive_call_shr(&self, fun: &str, args: &[Exp]) {
