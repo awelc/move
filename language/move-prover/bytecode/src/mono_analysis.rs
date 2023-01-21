@@ -547,13 +547,14 @@ impl<'a> Analyzer<'a> {
                 .entry(struct_.get_qualified_id())
                 .or_default()
                 .insert((targs[0].clone(), targs[1].clone()));
-        } else if struct_.is_native_or_intrinsic() && !targs.is_empty() {
-            self.info
-                .native_inst
-                .entry(struct_.module_env.get_id())
-                .or_default()
-                .insert(targs.to_owned());
         } else {
+            if struct_.is_native_or_intrinsic() && !targs.is_empty() {
+                self.info
+                    .native_inst
+                    .entry(struct_.module_env.get_id())
+                    .or_default()
+                    .insert(targs.to_owned());
+            }
             self.info
                 .structs
                 .entry(struct_.get_qualified_id())
