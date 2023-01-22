@@ -418,6 +418,7 @@ impl<'a> Analyzer<'a> {
             SaveMem(_, _, mem) => {
                 let mem = self.instantiate_mem(mem.to_owned());
                 let struct_env = self.env.get_struct_qid(mem.to_qualified_id());
+                eprintln!("STRUCT: {} {:?}", struct_env.get_full_name_str(), &mem.inst);
                 self.add_struct(struct_env, &mem.inst);
             }
             _ => {}
@@ -548,7 +549,6 @@ impl<'a> Analyzer<'a> {
                 .or_default()
                 .insert((targs[0].clone(), targs[1].clone()));
         } else {
-            eprintln!("STRUCT: {} {:?}", struct_.get_full_name_str(), targs);
             if struct_.is_native_or_intrinsic() && !targs.is_empty() {
                 self.info
                     .native_inst
