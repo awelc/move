@@ -548,7 +548,7 @@ impl<'a> Analyzer<'a> {
                 .or_default()
                 .insert((targs[0].clone(), targs[1].clone()));
         } else {
-            eprintln!("STRUCT: {}", struct_.get_full_name_str());
+            eprintln!("STRUCT: {} {:?}", struct_.get_full_name_str(), targs);
             if struct_.is_native_or_intrinsic() && !targs.is_empty() {
                 self.info
                     .native_inst
