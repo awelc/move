@@ -1151,7 +1151,16 @@ impl TypeInstantiationDerivation {
         }
 
         // the final workqueue contains possible instantiations for all type parameters
-        work_queue.into_iter().collect()
+        let res: BTreeSet<Vec<Type>> = work_queue.into_iter().collect();
+        let c = res.clone();
+        for s in c {
+            for t in s {
+                if let Type::TypeParameter(_) = t {
+                    eprintln!("UNEXPECTED TYPE PARAM");
+                }
+            }
+        }
+        res
     }
 }
 
