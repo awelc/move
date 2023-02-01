@@ -237,7 +237,8 @@ impl Type {
             Type::ResourceDomain(_, _, Some(v)) => v.iter().any(|e| e.contains_error()),
             Type::Fun(v, e) => v.iter().any(|e| e.contains_error()) || e.contains_error(),
             Type::TypeDomain(t) => t.contains_error(),
-            Type::ResourceDomain(_, _, None) | Type::Var(..) | Type::Error => true,
+            Type::ResourceDomain(_, _, None) | Type::Var(..) => false,
+            Type::Error => true,
         }
     }
 
