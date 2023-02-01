@@ -224,6 +224,24 @@ impl Type {
         }
     }
 
+    pub fn contains_error(&self) -> bool {
+        match self {
+            Type::Primitive(p) => !p.is_spec(),
+            Type::Tuple(..) => false,
+            Type::Vector(e) => e.contains_error(),
+            Type::Struct(_, _, insts) => insts.iter().all(|e| e.contains_error()),
+            Type::TypeParameter(..) => false,
+            // references cannot be a type argument
+            Type::Reference(..) => false,
+            // spec types cannot be a type argument
+            Type::Fun(..)
+            | Type::TypeDomain(..)
+            | Type::ResourceDomain(..)
+            | Type::Var(..)
+            | Type::Error => true,
+        }
+    }
+
     /// Skip reference type.
     pub fn skip_reference(&self) -> &Type {
         if let Type::Reference(_, bt) = self {

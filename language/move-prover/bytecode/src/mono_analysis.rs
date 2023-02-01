@@ -345,7 +345,7 @@ impl<'a> Analyzer<'a> {
                         false,
                         fun_type_params_arity,
                         true,
-                        false,
+                        true,
                     );
                     all_insts.extend(fun_insts);
                 }
