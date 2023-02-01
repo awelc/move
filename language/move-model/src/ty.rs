@@ -1149,7 +1149,7 @@ impl TypeInstantiationDerivation {
                 // decide what to do with an irrelevant type parameter
                 if target_param_insts.is_empty() {
                     let irrelevant_type = if mark_irrelevant_param_as_error {
-                        Type::Error
+                        Type::Primitive(PrimitiveType::Bool)
                     } else {
                         Type::TypeParameter(target_param_index as TypeParameterIndex)
                     };
