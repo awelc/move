@@ -294,6 +294,9 @@ impl<'env> BoogieTranslator<'env> {
                             if !translated_funs.insert(fun_name) {
                                 continue;
                             }
+                            if type_inst.contains(&Type::Error) {
+                                continue;
+                            }
                             FunctionTranslator {
                                 parent: self,
                                 fun_target,
