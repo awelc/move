@@ -268,6 +268,9 @@ impl<'env> BoogieTranslator<'env> {
                             if is_none_inst {
                                 continue;
                             }
+                            if type_inst.contains(&Type::Error) {
+                                continue;
+                            }
 
                             verified_functions_count += 1;
                             FunctionTranslator {
