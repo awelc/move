@@ -226,7 +226,7 @@ impl Type {
 
     pub fn contains_error(&self) -> bool {
         match self {
-            Type::Primitive(p) => !p.is_spec(),
+            Type::Primitive(p) => false,
             Type::Tuple(v) => v.iter().any(|e| e.contains_error()),
             Type::Vector(e) => e.contains_error(),
             Type::Struct(_, _, insts) => insts.iter().any(|e| e.contains_error()),
