@@ -268,7 +268,7 @@ impl<'env> BoogieTranslator<'env> {
                             if is_none_inst {
                                 continue;
                             }
-                            if type_inst.contains(&Type::Error) {
+                            if type_inst.iter().all(|e| e.contains_error()) {
                                 continue;
                             }
 
@@ -294,7 +294,7 @@ impl<'env> BoogieTranslator<'env> {
                             if !translated_funs.insert(fun_name) {
                                 continue;
                             }
-                            if type_inst.contains(&Type::Error) {
+                            if type_inst.iter().all(|e| e.contains_error()) {
                                 continue;
                             }
                             FunctionTranslator {
