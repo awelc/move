@@ -227,15 +227,15 @@ impl Type {
     pub fn contains_error(&self) -> bool {
         match self {
             Type::Primitive(p) => !p.is_spec(),
-            Type::Tuple(v) => v.iter().all(|e| e.contains_error()),
+            Type::Tuple(v) => v.iter().any(|e| e.contains_error()),
             Type::Vector(e) => e.contains_error(),
-            Type::Struct(_, _, insts) => insts.iter().all(|e| e.contains_error()),
+            Type::Struct(_, _, insts) => insts.iter().any(|e| e.contains_error()),
             Type::TypeParameter(..) => false,
             // references cannot be a type argument
             Type::Reference(..) => false,
             // spec types cannot be a type argument
-            Type::ResourceDomain(_, _, Some(v)) => v.iter().all(|e| e.contains_error()),
-            Type::Fun(v, e) => v.iter().all(|e| e.contains_error()) || e.contains_error(),
+            Type::ResourceDomain(_, _, Some(v)) => v.iter().any(|e| e.contains_error()),
+            Type::Fun(v, e) => v.iter().any(|e| e.contains_error()) || e.contains_error(),
             Type::TypeDomain(t) => t.contains_error(),
             Type::ResourceDomain(_, _, None) | Type::Var(..) | Type::Error => true,
         }
