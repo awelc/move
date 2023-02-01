@@ -231,9 +231,7 @@ impl Type {
             Type::Vector(e) => e.contains_error(),
             Type::Struct(_, _, insts) => insts.iter().any(|e| e.contains_error()),
             Type::TypeParameter(..) => false,
-            // references cannot be a type argument
-            Type::Reference(..) => false,
-            // spec types cannot be a type argument
+            Type::Reference(_, e) => e.contains_error(),
             Type::ResourceDomain(_, _, Some(v)) => v.iter().any(|e| e.contains_error()),
             Type::Fun(v, e) => v.iter().any(|e| e.contains_error()) || e.contains_error(),
             Type::TypeDomain(t) => t.contains_error(),
