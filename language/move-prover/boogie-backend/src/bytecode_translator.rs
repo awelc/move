@@ -227,6 +227,9 @@ impl<'env> BoogieTranslator<'env> {
                     if !translated_types.insert(struct_name) {
                         continue;
                     }
+                    if type_inst.iter().any(|e| e.contains_error()) {
+                        continue;
+                    }
                     StructTranslator {
                         parent: self,
                         struct_env,
