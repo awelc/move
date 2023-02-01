@@ -1151,7 +1151,17 @@ impl TypeInstantiationDerivation {
         }
 
         // the final workqueue contains possible instantiations for all type parameters
-        work_queue.into_iter().collect()
+        work_queue
+            .into_iter()
+            .filter(|v| {
+                for t in v {
+                    if t == &Type::Error {
+                        return false;
+                    }
+                }
+                true
+            })
+            .collect()
     }
 }
 
