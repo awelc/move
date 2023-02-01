@@ -272,6 +272,9 @@ impl<'env> SpecTranslator<'env> {
             self.error(&fun.loc, "function or tuple result type not yet supported");
             return;
         }
+        if self.inst.iter().any(|e| e.contains_error()) {
+            return;
+        }
         let recursive = self
             .env
             .is_spec_fun_recursive(module_env.get_id().qualified(id));
