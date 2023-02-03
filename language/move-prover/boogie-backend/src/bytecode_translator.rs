@@ -244,6 +244,20 @@ impl<'env> BoogieTranslator<'env> {
                     continue;
                 }
                 for (variant, ref fun_target) in self.targets.get_targets(fun_env) {
+                    if fun_target
+                        .data
+                        .local_types
+                        .iter()
+                        .any(|e| e.contains_error())
+                        || fun_target
+                            .data
+                            .return_types
+                            .iter()
+                            .any(|e| e.contains_error())
+                    {
+                        continue;
+                    }
+
                     if variant.is_verified() {
                         verified_functions_count += 1;
                         // Always produce a verified functions with an empty instantiation such that
