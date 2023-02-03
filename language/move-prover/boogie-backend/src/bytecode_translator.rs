@@ -227,7 +227,7 @@ impl<'env> BoogieTranslator<'env> {
                     if !translated_types.insert(struct_name) {
                         continue;
                     }
-                    if type_inst.iter().any(|e| e.contains_error()) {
+                    if type_inst.iter().any(|e| e.contains_tparam()) {
                         continue;
                     }
                     StructTranslator {
@@ -250,12 +250,12 @@ impl<'env> BoogieTranslator<'env> {
                             .data
                             .local_types
                             .iter()
-                            .any(|e| e.contains_error())
+                            .any(|e| e.contains_tparam())
                             && !fun_target
                                 .data
                                 .return_types
                                 .iter()
-                                .any(|e| e.contains_error())
+                                .any(|e| e.contains_tparam())
                         {
                             // Always produce a verified functions with an empty instantiation such that
                             // there is at least one top-level entry points for a VC.
@@ -283,7 +283,7 @@ impl<'env> BoogieTranslator<'env> {
                             if is_none_inst {
                                 continue;
                             }
-                            if type_inst.iter().any(|e| e.contains_error()) {
+                            if type_inst.iter().any(|e| e.contains_tparam()) {
                                 continue;
                             }
 
@@ -309,7 +309,7 @@ impl<'env> BoogieTranslator<'env> {
                             if !translated_funs.insert(fun_name) {
                                 continue;
                             }
-                            if type_inst.iter().any(|e| e.contains_error()) {
+                            if type_inst.iter().any(|e| e.contains_tparam()) {
                                 continue;
                             }
                             FunctionTranslator {

@@ -528,7 +528,7 @@ impl<'a> Analyzer<'a> {
         }
         ty.visit(&mut |t| match t {
             Type::Vector(et) => {
-                if !ty.contains_error() {
+                if !ty.contains_tparam() {
                     self.info.vec_inst.insert(et.as_ref().clone());
                 }
             }
@@ -543,7 +543,7 @@ impl<'a> Analyzer<'a> {
     }
 
     fn add_struct(&mut self, struct_: StructEnv<'_>, targs: &[Type]) {
-        if targs.iter().any(|e| e.contains_error()) {
+        if targs.iter().any(|e| e.contains_tparam()) {
             return;
         }
         if struct_.is_intrinsic_of(INTRINSIC_TYPE_MAP) {
