@@ -230,13 +230,13 @@ impl Type {
             Type::Tuple(v) => v.iter().any(|e| e.contains_error()),
             Type::Vector(e) => e.contains_error(),
             Type::Struct(_, _, insts) => insts.iter().any(|e| e.contains_error()),
-            Type::TypeParameter(..) => false,
+            Type::TypeParameter(..) => true,
             Type::Reference(_, e) => e.contains_error(),
             Type::ResourceDomain(_, _, Some(v)) => v.iter().any(|e| e.contains_error()),
             Type::Fun(v, e) => v.iter().any(|e| e.contains_error()) || e.contains_error(),
             Type::TypeDomain(t) => t.contains_error(),
             Type::ResourceDomain(_, _, None) | Type::Var(..) => false,
-            Type::Error => true,
+            Type::Error => false,
         }
     }
 
