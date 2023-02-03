@@ -526,6 +526,9 @@ impl<'a> Analyzer<'a> {
         if !self.done_types.insert(ty.to_owned()) {
             return;
         }
+        if ty.contains_error() {
+            return;
+        }
         ty.visit(&mut |t| match t {
             Type::Vector(et) => {
                 self.info.vec_inst.insert(et.as_ref().clone());
